@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吃啥水果？？？</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        #startButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #startButton:hover {
+            background-color: #45a049;
+        }
+        #startButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            text-align: center;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="my-lucky"></div>
+        <button id="startButton">选水果啦</button>
+    </div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modalText"></p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucky-canvas@1.7.25"></script>
+    <script>
+        const prizes = [
+            { x: 0, y: 0, fonts: [{ text: '🍐🍐🍐', top: '50%', fontSize: '14px' }] },
+            { x: 1, y: 0, fonts: [{ text: '🍎🍎🍎', top: '50%', fontSize: '14px' }] },
+            { x: 2, y: 0, fonts: [{ text: '🍌🍌🍌', top: '50%', fontSize: '14px' }] },
+            { x: 3, y: 0, fonts: [{ text: '🍓🍓🍓', top: '50%', fontSize: '14px' }] },
+            { x: 3, y: 1, fonts: [{ text: '🍒🍒🍒', top: '50%', fontSize: '14px' }] },
+            { x: 3, y: 2, fonts: [{ text: '🍇🍇🍇', top: '50%', fontSize: '14px' }] },
+            { x: 2, y: 2, fonts: [{ text: '🍍🍍🍍', top: '50%', fontSize: '14px' }] },
+            { x: 1, y: 2, fonts: [{ text: '🍉🍉🍉', top: '50%', fontSize: '14px' }] },
+            { x: 0, y: 2, fonts: [{ text: '🍑🍑🍑', top: '50%', fontSize: '14px' }] },
+            { x: 0, y: 1, fonts: [{ text: '🥭🥭🥭', top: '50%', fontSize: '14px' }] },
+            { x: 1, y: 1, fonts: [{ text: '🧄🧄🧄', top: '50%', fontSize: '14px' }] },
+            { x: 2, y: 1, fonts: [{ text: '🌶🌶🌶', top: '50%', fontSize: '14px' }] },
+        ];
+
+        let remainingPrizes = [...prizes];
+
+        const myLucky = new LuckyCanvas.LuckyGrid('#my-lucky', {
+            width: '300px',
+            height: '300px',
+            rows: 3,
+            cols: 4,
+            blocks: [
+                { padding: '10px', background: '#869cfa' },
+                { padding: '10px', background: '#e9e8fe' },
+            ],
+            prizes: prizes,
+            defaultStyle: {
+                background: '#b8c5f2',
+                fontColor: '#1f2d3d',
+                fontSize: '14px'
+            },
+            activeStyle: {
+                background: '#869cfa',
+                fontColor: '#ffffff',
+                fontSize: '16px'
+            },
+            end: function(prize) {
+                showModal('今天吃：' + prize.fonts[0].text);
+                const index = remainingPrizes.findIndex(p => p.fonts[0].text === prize.fonts[0].text);
+                if (index !== -1) {
+                    remainingPrizes.splice(index, 1);
+                }
+                startButton.disabled = false;
+                if (remainingPrizes.length === 0) {
+                    startButton.disabled = true;
+                }
+            }
+        });
+
+        const startButton = document.getElementById('startButton');
+        const modal = document.getElementById('myModal');
+        const modalText = document.getElementById('modalText');
+        const closeButton = document.getElementsByClassName('close-button')[0];
+
+        function showModal(message) {
+            modalText.textContent = message;
+            modal.style.display = 'block';
+        }
+
+        closeButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            if (remainingPrizes.length === 0) {
+                showModal('所有水果已抽完！');
+                return;
+            }
+
+            startButton.disabled = true;
+            const index = Math.floor(Math.random() * remainingPrizes.length);
+            const selectedIndex = prizes.indexOf(remainingPrizes[index]);
+
+            myLucky.play();
+            setTimeout(() => {
+                myLucky.stop(selectedIndex);
+            }, 3333); // 修改为3333ms，约为原来5000ms的三分之二
+        });
+    </script>
+</body>
+</html>
